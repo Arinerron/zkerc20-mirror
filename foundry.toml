@@ -6,7 +6,8 @@ solc = "0.8.27"
 remappings = [
     "@layerzerolabs/lz-evm-protocol-v2=lib/LayerZero-v2/packages/layerzero-v2/evm/protocol/",
     "@layerzerolabs/lz-evm-oapp-v2=lib/LayerZero-v2/packages/layerzero-v2/evm/oapp/",
-    "@openzeppelin=lib/openzeppelin-contracts/"
+    "@openzeppelin=lib/openzeppelin-contracts/",
+    "@hyperlane-xyz/core=lib/hyperlane-monorepo/solidity/"
 ]
 
 
