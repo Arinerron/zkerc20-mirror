@@ -12,6 +12,7 @@ import { tokens } from './tokens'
 import { Receipts, TokenType } from './receipts';
 import { chains } from './chains'
 import { ZKBalance } from './ZkercBalance'
+import useReceipts from './useReceipts'
 
 
 enum Tab {
@@ -43,13 +44,12 @@ const Input: React.FC<InputProps> = ({ label, type, value, onChange, className }
 const LockTab = () => {
   const [token, setToken] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
-  const receipts = useContext(ReceiptContext);
+  const { addReceipt } = useReceipts();
   const { address: walletAddress } = useAccount();
 
   const lockTokens = () => {
     console.log(`locking ${amount} of ${token}`)
-    receipts?.addReceipt("some hash", amount, walletAddress!, chains[0].chainId.toString(), token);
-    // 
+    addReceipt("some hash", amount, walletAddress!, chains[0].chainId.toString(), token);
   }
 
   const options = tokens.map(token => <option key={token.address} value={token.address}>{token.name}</option>)

@@ -44,13 +44,6 @@
   "dependencies": {
     "@layerzerolabs/lz-evm-oapp-v2": "^2.3.42",
     "@wagmi/core": "^2.13.5",
-    "viem": "^2.21.10",
-    "@layerzerolabs/lz-evm-v1-0.7": "^2.3.42",
-    "hardhat-deploy": "^0.12.4",
-    "circom_tester": "^0.0.20",
-    "circomlib": "^2.0.5",
-    "circomlibjs": "^0.1.7",
-    "ffjavascript": "^0.3.0",
-    "snarkjs": "^0.7.4"
+    "viem": "^2.21.10"
   }
 }

@@ -15,6 +15,7 @@ interface ReadableReceiptInfo {
 
 export const ZKBalance = () => {
   const receipts = useContext(ReceiptContext);
+  
   const { address } = useAccount();
   const [receiptInfo, setReceiptInfo] = useState<ReadableReceiptInfo>({});
 
