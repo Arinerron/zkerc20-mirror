@@ -1,8 +1,8 @@
-import { useContext, useEffect, useState } from 'react'
-import { ReceiptContext } from './page';
+import { useEffect, useState } from 'react'
 import { useAccount } from 'wagmi'
 import { tokens } from './tokens'
 import { chains } from './chains'
+import useReceipts from './useReceipts'
 
 // chainName: tokens
 
@@ -14,17 +14,17 @@ interface ReadableReceiptInfo {
 }
 
 export const ZKBalance = () => {
-  const receipts = useContext(ReceiptContext);
-  
+  // const receipts = useContext(ReceiptContext);
+  const { getReceiptInfoByWallet } = useReceipts();
+
   const { address } = useAccount();
   const [receiptInfo, setReceiptInfo] = useState<ReadableReceiptInfo>({});
 
   useEffect(() => {
-    if (!receipts || !address) {
+    if (!address) {
       return;
     }
-    console.log('receipts', receipts.receipts);
-    const receiptInfo = receipts.getReceiptInfoByWallet(address);
+    const receiptInfo = getReceiptInfoByWallet(address);
     const readableInfo = receiptInfo.map(({ amount, token: tokenAddress, chain: chainId }) => {
       const tokenName = tokens.find(token => token.address === tokenAddress)!.symbol;
       const chainName = chains.find(chain => chain.chainId.toString() === chainId)!.name;
@@ -43,11 +43,9 @@ export const ZKBalance = () => {
       infoMapByChain[info.chainName].push({ name: info.tokenName, amount: info.amount });
     }
     
-
-
     setReceiptInfo(infoMapByChain);
     console.log(readableInfo);
-  }, [receipts, address]);
+  }, [address, getReceiptInfoByWallet]);
 
   const receiptsComponents = Object.keys(receiptInfo).map((chainName: string) => {
     const tokens = receiptInfo[chainName];

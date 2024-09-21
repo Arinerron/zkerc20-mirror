@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo } from 'react'
 import { useLocalStorage } from 'usehooks-ts';
 
 interface Receipt {
@@ -34,7 +35,7 @@ const useReceipts = () => {
         amount: getTotalAmount(wallet, chain, tokenType),
       };
     });
-  }
+  };
 
   const addReceipt = (value: string, amount: number, wallet: string, chain: string, tokenType: string) => {
     const key = getKey(wallet, chain, tokenType);

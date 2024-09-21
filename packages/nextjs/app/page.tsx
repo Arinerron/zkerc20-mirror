@@ -102,7 +102,6 @@ const TransferTab = () => {
   const [receivingAddress, setReceivingAddress] = useState<string>("");
   const [amountAvailable, setAmountAvailable] = useState(0);
 
-  const receipts = useContext(ReceiptContext);
 
   const { address } = useAccount();
   console.log('mywallet', address);
@@ -111,11 +110,11 @@ const TransferTab = () => {
   const chainOptions = chains.map(chain => <option key={chain.chainId} value={chain.chainId}>{chain.name}</option>)
 
   useEffect(() => {
-    if (!address || !sendingChain || !token || receipts === null) {
+    if (!address || !sendingChain || !token) {
       return;
     }
 
-  }, [address, sendingChain, receivingChain, token, receipts]);
+  }, [address, sendingChain, receivingChain, token]);
 
   const transfer = () => {
     console.log(`transferring ${amount} ${token} from ${sendingChain} to ${receivingChain}'s address ${receivingAddress}`)
@@ -200,7 +199,7 @@ const CashOutTab = () => {
   const [amount, setAmount] = useState(0);
   const [amountAvailable, setAmountAvailable] = useState(0);
 
-  const receipts = useContext(ReceiptContext);
+  const { getTotalAmount } = useReceipts();
 
   const { address } = useAccount();
   console.log('mywallet', address);
@@ -209,14 +208,14 @@ const CashOutTab = () => {
   const chainOptions = chains.map(chain => <option key={chain.chainId} value={chain.chainId}>{chain.name}</option>)
 
   useEffect(() => {
-    if (!address || !chain || !token || receipts === null) {
+    if (!address || !chain || !token) {
       return;
     }
 
-    const available = receipts.getTotalAmount(address, chain, token);
+    const available = getTotalAmount(address, chain, token);
     setAmountAvailable(available);
     console.log(`available receipts in chain ${chain} and token ${token}`, available);
-  }, [address, chain, token, receipts]);
+  }, [address, chain, token]);
 
   const cashOut = () => {
     console.log(`cashing out ${amount} of ${token} on chain ${chain}`)
@@ -276,17 +275,9 @@ const CashOutTab = () => {
   )
 }
 
-export const ReceiptContext = React.createContext<Receipts|null>(null);
-
 const Home: NextPage = () => {
   const [activeTab, setActiveTab] = useState(Tab.Lock);
-  const [receiptsObj, setReceiptsObj] = useState<any>(null);
   const { address } = useAccount();
-
-  const receiptsInited = new Receipts(localStorage);
-  // receiptsInited.addReceipt("some hash 1", 88, address ?? "1", chains[0].chainId.toString(), tokens[1].address);
-  // receiptsInited.addReceipt("some hash 2", 5, address ?? "1", chains[2].chainId.toString(), tokens[3].address);
-  // receiptsInited.addReceipt("some hash 3", 10, address ?? "1", chains[4].chainId.toString(), tokens[2].address);
 
   const handleTabClick = (tab: Tab) => {
     setActiveTab(tab);
@@ -294,7 +285,7 @@ const Home: NextPage = () => {
 
 
   return (
-    <ReceiptContext.Provider value={receiptsInited}>
+    <>
       <div className="flex justify-center pt-10 items-stretch">
         {/* main square thing */}
       <div className="mx-2">
@@ -357,7 +348,7 @@ const Home: NextPage = () => {
 
       <ZKBalance />
       </div>
-    </ReceiptContext.Provider>
+    </>
   );
 };
 
