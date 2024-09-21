@@ -20,6 +20,10 @@ export const chains = [
     token: "AVAX"
   },
   {
+    name: "GoChain Testnet",
+    chainId: 31337,
+  },
+  {
     name: "Fantom Opera",
     chainId: 250,
     token: "FTM"

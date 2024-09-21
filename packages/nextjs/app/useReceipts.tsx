@@ -25,7 +25,14 @@ const useReceipts = () => {
     return [wallet, chain, tokenType];
   }
 
-  const getReceiptInfoByWallet = (wallet: string): ReceiptInfo[] => {
+  const getTotalAmount = (wallet: string, chain: string, tokenType: string): number => {
+    if (receipts[getKey(wallet, chain, tokenType)] === undefined) {
+      return 0;
+    }
+    return receipts[getKey(wallet, chain, tokenType)].reduce((acc, cur) => acc + cur.amount, 0);
+  }
+
+  const getReceiptInfoByWallet = useCallback((wallet: string): ReceiptInfo[] => {
     const keys = Object.keys(receipts).filter(key => key.startsWith(wallet));
     return keys.map(key => {
       const [_, chain, tokenType] = parseKey(key);
@@ -35,7 +42,7 @@ const useReceipts = () => {
         amount: getTotalAmount(wallet, chain, tokenType),
       };
     });
-  };
+  }, [receipts]);
 
   const addReceipt = (value: string, amount: number, wallet: string, chain: string, tokenType: string) => {
     const key = getKey(wallet, chain, tokenType);
@@ -48,17 +55,22 @@ const useReceipts = () => {
     setReceipts(receiptsCopy);
   }
 
-  const getTotalAmount = (wallet: string, chain: string, tokenType: string): number => {
-    if (receipts[getKey(wallet, chain, tokenType)] === undefined) {
-      return 0;
-    }
-    return receipts[getKey(wallet, chain, tokenType)].reduce((acc, cur) => acc + cur.amount, 0);
-  }
-
   // gets the amount the user can send in one transaction
   const getTop8Amount = (wallet: string, chain: string, tokenType: string): number => {
     return receipts[getKey(wallet, chain, tokenType)].slice(0, 8).reduce((acc, cur) => acc + cur.amount, 0);
   }
+
+  const getTop8ReceiptsInfoByWallet = useCallback((wallet: string): ReceiptInfo[] => {
+    const keys = Object.keys(receipts).filter(key => key.startsWith(wallet));
+    return keys.map(key => {
+      const [_, chain, tokenType] = parseKey(key);
+      return {
+        chain,
+        token: tokenType,
+        amount: getTop8Amount(wallet, chain, tokenType),
+      };
+    });
+  }, [receipts]);
 
   const popTopReceipts = (wallet: string, chain: string, tokenType: string): Receipt[] => {
     const key = getKey(wallet, chain, tokenType);
@@ -73,6 +85,7 @@ const useReceipts = () => {
     addReceipt,
     getTotalAmount,
     getTop8Amount,
+    getTop8ReceiptsInfoByWallet,
     popTopReceipts,
   };
 }

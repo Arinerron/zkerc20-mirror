@@ -10,12 +10,13 @@ interface ReadableReceiptInfo {
   [chainName: string]: {
     name: string;
     amount: number;
+    availablePerTx: number;
   }[];
 }
 
 export const ZKBalance = () => {
   // const receipts = useContext(ReceiptContext);
-  const { getReceiptInfoByWallet } = useReceipts();
+  const { getReceiptInfoByWallet, getTop8ReceiptsInfoByWallet } = useReceipts();
 
   const { address } = useAccount();
   const [receiptInfo, setReceiptInfo] = useState<ReadableReceiptInfo>({});
@@ -25,6 +26,7 @@ export const ZKBalance = () => {
       return;
     }
     const receiptInfo = getReceiptInfoByWallet(address);
+    const top8Receipts = getTop8ReceiptsInfoByWallet(address);
     const readableInfo = receiptInfo.map(({ amount, token: tokenAddress, chain: chainId }) => {
       const tokenName = tokens.find(token => token.address === tokenAddress)!.symbol;
       const chainName = chains.find(chain => chain.chainId.toString() === chainId)!.name;
@@ -36,12 +38,12 @@ export const ZKBalance = () => {
     })
 
     const infoMapByChain: ReadableReceiptInfo = {}
-    for (const info of readableInfo) {
+    readableInfo.forEach((info, index) => {
       if (infoMapByChain[info.chainName] === undefined) {
         infoMapByChain[info.chainName] = [];
       }
-      infoMapByChain[info.chainName].push({ name: info.tokenName, amount: info.amount });
-    }
+      infoMapByChain[info.chainName].push({ name: info.tokenName, amount: info.amount, availablePerTx: top8Receipts[index].amount });
+    })
     
     setReceiptInfo(infoMapByChain);
     console.log(readableInfo);
@@ -54,8 +56,14 @@ export const ZKBalance = () => {
         <div className="text-slate-600">{chainName}</div>
         {tokens.map(token => {
           return (
-            <div key={address+chainName+token.name} className="font-medium">
-              {token.amount} {token.name}
+            <div key={address+chainName+token.name}>
+              <div className="font-medium">
+                <span>{token.amount} {token.name}</span>
+                <span className="font-light text-slate-500 ml-2">
+                  {token.availablePerTx} per txn
+                </span>
+              </div>
+              
             </div>
           )
         })}

@@ -13,6 +13,7 @@ import { Receipts, TokenType } from './receipts';
 import { chains } from './chains'
 import { ZKBalance } from './ZkercBalance'
 import useReceipts from './useReceipts'
+import { ZKBalancePerTx } from './ZkercBalancePerTx'
 
 
 enum Tab {
@@ -45,11 +46,12 @@ const LockTab = () => {
   const [token, setToken] = useState<string>("");
   const [amount, setAmount] = useState<number>(0);
   const { addReceipt } = useReceipts();
-  const { address: walletAddress } = useAccount();
+  const { address: walletAddress, chainId } = useAccount();
 
   const lockTokens = () => {
-    console.log(`locking ${amount} of ${token}`)
-    addReceipt("some hash", amount, walletAddress!, chains[0].chainId.toString(), token);
+    console.log(`locking ${amount} of ${token} from chain ${chainId}`);
+    // TODO: call smart contract
+    addReceipt("some hash", amount, walletAddress!, chainId?.toString() || "", token);
   }
 
   const options = tokens.map(token => <option key={token.address} value={token.address}>{token.name}</option>)
@@ -197,9 +199,8 @@ const CashOutTab = () => {
   const [chain, setChain] = useState<string>("")
   const [token, setToken] = useState<string>(""); // token address
   const [amount, setAmount] = useState(0);
-  const [amountAvailable, setAmountAvailable] = useState(0);
 
-  const { getTotalAmount } = useReceipts();
+  const { popTopReceipts, addReceipt } = useReceipts();
 
   const { address } = useAccount();
   console.log('mywallet', address);
@@ -212,13 +213,15 @@ const CashOutTab = () => {
       return;
     }
 
-    const available = getTotalAmount(address, chain, token);
-    setAmountAvailable(available);
-    console.log(`available receipts in chain ${chain} and token ${token}`, available);
+    console.log(`available receipts in chain ${chain} and token ${token}`);
   }, [address, chain, token]);
 
   const cashOut = () => {
-    console.log(`cashing out ${amount} of ${token} on chain ${chain}`)
+    console.log(`cashing out ${amount} of ${token} on chain ${chain}`);
+    const receipts = popTopReceipts(address!, chain, token);
+    const total = receipts.reduce((acc, receipt) => acc + receipt.amount, 0)
+    // TODO: do some processing, get the remaining amount back
+    addReceipt("some hash", total - amount, address!, chain, token);
   }
 
   const buttonStyle = "mt-auto bg-transparent text-blue-700 font-semibold py-2 px-4 border border-blue-500 rounded"
@@ -277,7 +280,6 @@ const CashOutTab = () => {
 
 const Home: NextPage = () => {
   const [activeTab, setActiveTab] = useState(Tab.Lock);
-  const { address } = useAccount();
 
   const handleTabClick = (tab: Tab) => {
     setActiveTab(tab);
@@ -347,6 +349,8 @@ const Home: NextPage = () => {
       </div>
 
       <ZKBalance />
+      {/* <div className="w-2"></div>
+      <ZKBalancePerTx /> */}
       </div>
     </>
   );
