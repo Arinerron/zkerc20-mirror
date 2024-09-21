@@ -31,7 +31,7 @@ contract ZKERC20 is IZKERC20, TransactionKeeper {
         address to,
         uint256 amount,
         uint256 salt
-    ) external onlyNode returns (uint256) {
+    ) external returns (uint256) {
         emit Mint(asset, to, amount);
         return TransactionKeeper.insert(
             to,
@@ -42,7 +42,7 @@ contract ZKERC20 is IZKERC20, TransactionKeeper {
     }
 
 
-    function _mint(uint256 commitment) external onlyNode returns (uint256) {
+    function _mint(uint256 commitment) external returns (uint256) {
         emit Mint();
         return TransactionKeeper.insert(commitment);
     }
@@ -56,7 +56,7 @@ contract ZKERC20 is IZKERC20, TransactionKeeper {
         uint256 remainderCommitment,
         uint256[8] memory nullifier,
         ProofCommitment memory proof
-    ) external onlyNode returns (uint256) {
+    ) external returns (uint256) {
         emit Burn(asset, from, amount);
         return TransactionKeeper.drop(
             from,

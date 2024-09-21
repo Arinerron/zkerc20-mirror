@@ -1,5 +1,7 @@
 pragma solidity ^0.8.27;
 
+import {console} from "forge-std/console.sol";
+
 abstract contract MerkleTree {
     uint8 public targetHeight;
     uint256 public root = 0;
@@ -33,6 +35,8 @@ abstract contract MerkleTree {
             }
             index >>= 1;
         }
+
+        console.log(_hash(value, 0));
 
         root = current;
 

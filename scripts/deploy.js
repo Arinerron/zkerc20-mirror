@@ -284,8 +284,8 @@ async function test2() {
     process.exit(1);
 });*/
 
-test2().then(() => process.exit(0)).catch(error => {
+/*test2().then(() => process.exit(0)).catch(error => {
     console.error(error);
     process.exit(1);
-});
+});*/
 

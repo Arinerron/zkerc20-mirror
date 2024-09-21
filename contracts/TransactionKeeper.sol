@@ -1,5 +1,6 @@
 pragma solidity ^0.8.27;
 
+import { console } from "forge-std/console.sol";
 import { MerkleTree } from "./MerkleTree.sol";
 import { Groth16Verifier } from "../circuits/verifier.sol";
 import {
@@ -72,6 +73,32 @@ contract TransactionKeeper is MerkleTree(30) {
                 nullifiers[7]
             ]
         );
+
+        console.log("printing proof");
+        console.log(proof.a[0]);
+        console.log(proof.a[1]);
+        console.log(proof.b[0][0]);
+        console.log(proof.b[0][1]);
+        console.log(proof.b[1][0]);
+        console.log(proof.b[1][1]);
+        console.log(proof.c[0]);
+        console.log(proof.c[1]);
+        console.log("merkle root");
+        console.log(MerkleTree.root);
+        console.log("spender");
+        console.log(uint256(uint160(spender)));
+        console.log("commitments");
+        console.log(leftCommitment);
+        console.log(rightCommitment);
+        console.log("nullifiers");
+        console.log(nullifiers[0]);
+        console.log(nullifiers[1]);
+        console.log(nullifiers[2]);
+        console.log(nullifiers[3]);
+        console.log(nullifiers[4]);
+        console.log(nullifiers[5]);
+        console.log(nullifiers[6]);
+        console.log(nullifiers[7]);
 
         if (!valid) { return false; }
 
@@ -188,7 +215,7 @@ contract TransactionKeeper is MerkleTree(30) {
             salt
         );
 
-        uint256 index = _insert(commitment);
+        index = _insert(commitment);
 
         emit PublicTransaction (
             commitment,
@@ -203,7 +230,7 @@ contract TransactionKeeper is MerkleTree(30) {
     function insert(
         uint256 commitment
     ) internal returns (uint256 index) {
-        uint256 index = _insert(commitment);
+        index = _insert(commitment);
         emit Transaction(commitment, index);
     }
 
@@ -214,7 +241,7 @@ contract TransactionKeeper is MerkleTree(30) {
         r = left;
         uint256 c;
         (r, c) = mimcSponge.MiMCSponge(r, 0, 0);
-        r += right;
+        r = (r + right); // % 21888242871839275222246405745257275088548364400416034343698204186575808495617;
         (r,) = mimcSponge.MiMCSponge(r, c, 0);
     }
 
