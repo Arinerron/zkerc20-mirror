@@ -107,8 +107,11 @@ const AddUTXOTab = () => {
   const tokenOptions = tokens.map(token => <option key={token.address} value={token.address}>{token.name}</option>)
 
   const addUTXO = () => {
-    addReceipt(receipt, amount, walletAddress!, chainId?.toString() || "", token);
-    console.log(`adding ${amount} of ${token} to wallet ${walletAddress} on chain ${chainId}, receipt is ${receipt}`);
+    try {
+      const data = JSON.parse(atob(receipt));
+      addReceipt(data.salt, data.amount, data.user, chainId?.toString() || "", data.asset);
+      console.log(`adding ${data.amount} of ${data.asset} to wallet ${data.user} on chain ${chainId}, receipt is ${data.salt}`);
+    } catch {}
   }
 
   const buttonStyle = "mt-auto bg-transparent text-blue-700 font-semibold py-2 px-4 border border-blue-500 rounded"
@@ -118,7 +121,7 @@ const AddUTXOTab = () => {
 
   return (
     <div className="w-full mb-6 flex flex-col">
-      <label className="block mt-2 mb-1 text-xs text-gray-500 ">
+      {/* <label className="block mt-2 mb-1 text-xs text-gray-500 ">
         Token
       </label>
       <select
@@ -131,17 +134,17 @@ const AddUTXOTab = () => {
           Choose a token
         </option>
         {tokenOptions}
-      </select>
+      </select> */}
 
       <div className="h-5" />
 
-      <Input label="Amount" type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value))}/>
-      <Input label="ZKECR20 hash" type="string" value={receipt} onChange={(e) => setReceipt(e.target.value)}/>
+      {/*<Input label="Amount" type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value))}/>*/}
+      <Input label="ZKECR20 receipt" type="string" value={receipt} onChange={(e) => setReceipt(e.target.value)}/>
 
       <button 
-        className={[token, receipt, amount].includes("") ? buttonStyleDisabled : buttonEnabledStyle}
+        className={receipt === "" ? buttonStyleDisabled : buttonEnabledStyle}
         onClick={addUTXO}
-        disabled={[token, receipt, amount].includes("")}
+        disabled={receipt === ""}
       >
         Add
       </button>
@@ -155,10 +158,10 @@ const TransferTab = () => {
   const [token, setToken] = useState<string>(""); // token address
   const [amount, setAmount] = useState(0);
   const [receivingAddress, setReceivingAddress] = useState<string>("");
-  const [amountAvailable, setAmountAvailable] = useState(0);
-
+  const [recipientUtxo, setRecipientUtxo] = useState<string>("");
 
   const { address } = useAccount();
+  const { addReceipt, popTopReceipts } = useReceipts();
   console.log('mywallet', address);
 
   const tokenOptions = tokens.map(token => <option key={token.address} value={token.address}>{token.name}</option>)
@@ -173,6 +176,18 @@ const TransferTab = () => {
 
   const transfer = () => {
     console.log(`transferring ${amount} ${token} from ${sendingChain} to ${receivingChain}'s address ${receivingAddress}`)
+    const receipts = popTopReceipts(address!, sendingChain, token);
+    const total = receipts.reduce((acc, receipt) => acc + receipt.amount, 0)
+    // TODO: do some processing, get the remaining amount back
+    const random = new Uint32Array(2);
+    window.crypto.getRandomValues(random);
+    addReceipt(random[0].toString(16), total - amount, address!, sendingChain, token);
+    setRecipientUtxo(btoa(JSON.stringify({
+      salt: random[1].toString(16),
+      amount: amount,
+      asset: token,
+      user: receivingAddress,
+    })));
   }
 
   const buttonStyle = "mt-auto bg-transparent text-blue-700 font-semibold py-2 px-4 border border-blue-500 rounded"
@@ -237,6 +252,9 @@ const TransferTab = () => {
 
       <Input label="Receiving address" type="string" value={receivingAddress} onChange={(e) => setReceivingAddress(e.target.value)} className="my-0"/>
 
+      <div className="text-xs mt-auto text-slate-700 mb-2 break-all">
+        {recipientUtxo && `Recipient's UTXO: ${recipientUtxo}`}
+      </div>
       <button 
         className={[token, sendingChain, receivingChain, receivingAddress, amount].includes("") ? buttonStyleDisabled : buttonEnabledStyle}
         onClick={transfer}
