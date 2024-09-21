@@ -17,6 +17,7 @@ import { ZKBalancePerTx } from './ZkercBalancePerTx'
 
 
 enum Tab {
+  AddUTXO = "AddUTXO",
   Lock = 'Lock', // converting raw token to encrypted data
   Transfer = 'Transfer',
   CashOut = 'CashOut',
@@ -91,6 +92,58 @@ const LockTab = () => {
         disabled={token === "" || amount === 0}
       >
         ZK-fy
+      </button>
+    </div>
+  )
+}
+const AddUTXOTab = () => {
+  // assume current wallet + current chain
+  const [token, setToken] = useState<string>(""); // token address
+  const [amount, setAmount] = useState(0);
+  const [receipt, setReceipt] = useState<string>("");
+
+  const { address: walletAddress, chainId } = useAccount();
+  const { addReceipt } = useReceipts();
+  const tokenOptions = tokens.map(token => <option key={token.address} value={token.address}>{token.name}</option>)
+
+  const addUTXO = () => {
+    addReceipt(receipt, amount, walletAddress!, chainId?.toString() || "", token);
+    console.log(`adding ${amount} of ${token} to wallet ${walletAddress} on chain ${chainId}, receipt is ${receipt}`);
+  }
+
+  const buttonStyle = "mt-auto bg-transparent text-blue-700 font-semibold py-2 px-4 border border-blue-500 rounded"
+  const buttonEnabledStyle = `${buttonStyle} hover:bg-blue-500 hover:text-white hover:border-transparent`
+  const buttonStyleDisabled = `${buttonStyle} opacity-50 cursor-not-allowed`
+
+
+  return (
+    <div className="w-full mb-6 flex flex-col">
+      <label className="block mt-2 mb-1 text-xs text-gray-500 ">
+        Token
+      </label>
+      <select
+        id="tokens"
+        value={token}
+        onChange={e => setToken(e.target.value)}
+        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+      >
+        <option value="" disabled>
+          Choose a token
+        </option>
+        {tokenOptions}
+      </select>
+
+      <div className="h-5" />
+
+      <Input label="Amount" type="number" value={amount} onChange={(e) => setAmount(parseFloat(e.target.value))}/>
+      <Input label="ZKECR20 hash" type="string" value={receipt} onChange={(e) => setReceipt(e.target.value)}/>
+
+      <button 
+        className={[token, receipt, amount].includes("") ? buttonStyleDisabled : buttonEnabledStyle}
+        onClick={addUTXO}
+        disabled={[token, receipt, amount].includes("")}
+      >
+        Add
       </button>
     </div>
   )
@@ -299,6 +352,19 @@ const Home: NextPage = () => {
               <ul className="relative flex flex-wrap px-1.5 py-1.5 list-none rounded-t-md bg-slate-100" role="list">
                 <li className="flex-auto text-center">
                   <a
+                    className={`flex items-center justify-center w-full px-0 py-2 mb-0 text-sm transition-all ease-in-out rounded-lg cursor-pointer ${
+                      activeTab === Tab.AddUTXO ? 'bg-white text-slate-700' : 'bg-inherit text-slate-600'
+                    }`}
+                    role="tab"
+                    aria-selected={activeTab === Tab.AddUTXO}
+                    onClick={() => handleTabClick(Tab.AddUTXO)}
+                  >
+                    Add UTXO
+                  </a>
+                </li>
+
+                <li className="flex-auto text-center">
+                  <a
                     className={`flex items-center justify-center w-full px-0 py-2 text-sm mb-0 transition-all ease-in-out rounded-md cursor-pointer ${
                       activeTab === Tab.Lock ? 'bg-white text-slate-700' : 'bg-inherit text-slate-600'
                     }`}
@@ -333,12 +399,14 @@ const Home: NextPage = () => {
                     Cash out
                   </a>
                 </li>
+                
               </ul>
             </div>
           </div>
 
 
           <div className='w-full bg-slate-100 h-96 flex px-6'>
+              {activeTab === Tab.AddUTXO && <AddUTXOTab />}
               {activeTab === Tab.Transfer && <TransferTab />}
               {activeTab === Tab.Lock && <LockTab />}
               {activeTab === Tab.CashOut && <CashOutTab />}
